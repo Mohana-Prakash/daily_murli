@@ -5,34 +5,30 @@ import moment from "moment";
 
 function App() {
   const [content, setContent] = useState({});
-  const [date, setDate] = useState(moment(new Date()).format("DD.MM.YY"));
   const [lang, setLang] = useState("tamil");
   const today = new Date().toISOString().split("T")[0];
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await axios.get(
-          `https://daily-murli-backend.vercel.app/fetch-murli/${date}`
-        );
-        setContent(response.data);
-      } catch (error) {}
-    };
-
     fetchData();
-  }, [date]);
+  }, []);
+
+  const fetchData = async (date) => {
+    const req_date = moment(date || new Date()).format("DD.MM.YY");
+    try {
+      const response = await axios.get(
+        `https://daily-murli-backend.vercel.app/fetch-murli/${req_date}`
+      );
+      setContent(response.data);
+    } catch (error) {
+      console.log(error.response.data.error);
+    }
+  };
 
   return (
     <div style={{ padding: "10px" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-        }}>
+      <div>
         <input
           type="date"
-          onChange={(e) => setDate(moment(e.target.value).format("DD.MM.YY"))}
-          value={date}
+          onChange={(e) => fetchData(e.target.value)}
           id="dateInput"
           max={today}
           style={{
@@ -43,23 +39,24 @@ function App() {
           }}
         />
         <select
-          style={{ width: "10%", padding: "10px", borderRadius: "5px" }}
+          style={{
+            marginLeft: "10px",
+            width: "10%",
+            padding: "10px",
+            borderRadius: "5px",
+          }}
           onChange={(e) => setLang(e.target.value)}>
           <option value="tamil">Tamil</option>
           <option value="english">English</option>
         </select>
       </div>
-      {lang === "tamil" ? (
-        <div
-          style={{ margin: "auto", width: "80%" }}
-          dangerouslySetInnerHTML={{ __html: content.tamil }}
-        />
-      ) : (
-        <div
-          style={{ margin: "auto", width: "80%" }}
-          dangerouslySetInnerHTML={{ __html: content.english }}
-        />
-      )}{" "}
+      <div style={{ display: "flex" }}>
+        {lang === "tamil" ? (
+          <div dangerouslySetInnerHTML={{ __html: content.tamil }} />
+        ) : (
+          <div dangerouslySetInnerHTML={{ __html: content.english }} />
+        )}
+      </div>
     </div>
   );
 }
